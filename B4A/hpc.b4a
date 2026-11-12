@@ -1,0 +1,319 @@
+﻿Build1=Default,b4a.example
+File1=adaboost.json
+File10=Layout.bal
+File11=Layout2.bal
+File12=random_forest.json
+File13=rf.json
+File14=svr.json
+File15=svr.xls
+File16=xgb_model.json
+File17=xgboost.json
+File2=ann.json
+File3=ann.xls
+File4=background_100.csv
+File5=background_25.csv
+File6=background_250.csv
+File7=background_50.csv
+File8=catboost.json
+File9=data.csv
+FileGroup1=Default Group
+FileGroup10=Default Group
+FileGroup11=Default Group
+FileGroup12=Default Group
+FileGroup13=Default Group
+FileGroup14=Default Group
+FileGroup15=Default Group
+FileGroup16=Default Group
+FileGroup17=Default Group
+FileGroup2=Default Group
+FileGroup3=Default Group
+FileGroup4=Default Group
+FileGroup5=Default Group
+FileGroup6=Default Group
+FileGroup7=Default Group
+FileGroup8=Default Group
+FileGroup9=Default Group
+Group=Default Group
+Library1=core
+Library2=json
+Library3=phone
+Library4=stringutils
+Library5=excel
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: https://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="34"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~CreateResourceFromFile(Macro, Themes.LightTheme)~\n~'End of default text.~\n~
+Module1=AdaBoost
+Module2=ANN
+Module3=CatBoost
+Module4=Plot
+Module5=RandomForest
+Module6=SHAP
+Module7=SVR
+Module8=XGBoost
+NumberOfFiles=17
+NumberOfLibraries=5
+NumberOfModules=8
+Version=13.3
+@EndOfDesignText@
+#Region  Project Attributes 
+	#ApplicationLabel: B4A Example
+	#VersionCode: 1
+	#VersionName: 
+	'SupportedOrientations possible values: unspecified, landscape or portrait.
+	#SupportedOrientations: unspecified
+	#CanInstallToExternalStorage: False
+#End Region
+
+#Region  Activity Attributes 
+	#FullScreen: True
+	#IncludeTitle: True
+#End Region
+
+Sub Process_Globals
+	'These global variables will be declared once when the application starts.
+	'These variables can be accessed from all modules.
+
+	Dim SHAP1() As Double
+	Dim base As Double
+	Dim pw1 As PhoneWakeState
+	
+	Dim HPCANN As ReadableWorkbook
+	Dim scaler_mean_ (8) As Double
+	Dim scaler_scale_ (8) As Double
+	Dim coef_0 (187, 8) As Double
+	Dim intercepts_0 (187) As Double
+	Dim coef_1 (71,187) As Double
+	Dim intercepts_1 (71) As Double
+	Dim coef_2 (71) As Double
+	Dim intercepts_2 As Double
+	
+	Dim HPCSVR As ReadableWorkbook
+	Dim scaler_mean_ (8) As Double
+	Dim scaler_scale_ (8) As Double
+	Dim gamma As Double
+	Dim support_vectors(1623,8) As Double
+	Dim dual_coef(1623) As Double
+	Dim intercept As Double
+End Sub
+
+Sub Globals
+	'These global variables will be redeclared each time the activity is created.
+	Dim Button1 As Button
+	Private Label12 As Label
+	Private Label15 As Label
+	Private Label18 As Label
+	Private Label21 As Label
+	Private Label24 As Label
+	Private Label3 As Label
+	Private Label6 As Label
+	Private Label9 As Label
+	Private SeekBar1 As SeekBar
+	Private SeekBar2 As SeekBar
+	Private SeekBar3 As SeekBar
+	Private SeekBar4 As SeekBar
+	Private SeekBar5 As SeekBar
+	Private SeekBar6 As SeekBar
+	Private SeekBar7 As SeekBar
+	Private SeekBar8 As SeekBar
+End Sub
+
+Sub Activity_Create(FirstTime As Boolean)
+	Activity.LoadLayout("Layout")
+	SeekBar1.Value=(540-70)/(702-70)*100
+	SeekBar2.Value=(0-0)/(440-0)*100
+	SeekBar3.Value=(0-0)/(544-0)*100
+	SeekBar4.Value=(162-105)/(295-105)*100
+	SeekBar5.Value=(2.5-0)/(35.1-0)*100
+	SeekBar6.Value=(1040-723)/(1218-723)*100
+	SeekBar7.Value=(676-280)/(992.6-280)*100
+	SeekBar8.Value=(28-1)/(365-1)*100
+	Dim a As Double=DateTime.Now
+	#region ANN
+	HPCANN.Initialize(File.DirAssets, "ANN.xls")
+	For i=0 To 7
+		scaler_mean_ (i) =HPCANN.GetSheet(1).GetCellValue(0,i)
+		scaler_scale_ (i) = HPCANN.GetSheet(2).GetCellValue(0,i)
+	Next
+	
+	For i=0 To 186
+		For j=0 To 7
+			coef_0 (i,j) = HPCANN.GetSheet(3).GetCellValue(j,i)
+		Next
+		intercepts_0 (i) = HPCANN.GetSheet(4).GetCellValue(0,i)
+	Next
+	
+	For i=0 To 70
+		For j=0 To 186
+			coef_1 (i,j) = HPCANN.GetSheet(5).GetCellValue(j,i)
+		Next
+		intercepts_1 (i) = HPCANN.GetSheet(6).GetCellValue(0,i)
+	Next
+	
+	For i=0 To 70
+		coef_2 (i) = HPCANN.GetSheet(7).GetCellValue(i,0)
+	Next
+	intercepts_2 = HPCANN.GetSheet(8).GetCellValue(0,0)
+	#end region
+	Log(DateTime.Now-a)
+	#region SVR
+	HPCSVR.Initialize(File.DirAssets, "SVR.xls")
+	For i=0 To 7
+		scaler_mean_ (i) =HPCSVR.GetSheet(1).GetCellValue(0,i)
+		scaler_scale_ (i) = HPCSVR.GetSheet(2).GetCellValue(0,i)
+	Next
+	gamma = HPCSVR.GetSheet(3).GetCellValue(0,0)
+	
+	For i=0 To 1622
+		For j=0 To 7
+			support_vectors(i,j) = HPCSVR.GetSheet(4).GetCellValue(j,i)
+		Next
+	Next
+	
+	For i=0 To 1622
+		dual_coef (i) = HPCSVR.GetSheet(5).GetCellValue(0,i)
+	Next
+	
+	intercept =HPCSVR.GetSheet(6).GetCellValue(0,0)
+	
+	#end region
+	
+	SHAP.LoadData(File.DirAssets, "data.csv")
+'	Dim s() As Double = Array As Double(139.6,209.4,0,192,0,1047,806.9,3)
+'	Log(SVR.Predict(s))
+'	For i=0 To 99
+'		Dim a As Double = DateTime.Now
+'		For j=0 To 99
+'			SVR.Predict(s)
+'		Next
+'		Log((DateTime.Now - a)/100)
+'	Next
+
+	pw1.KeepAlive(True)
+'	Dim x(8) As Double = Array As Double(374, 189.2, 0, 170.1, 10.1, 926.1, 756.7, 3)', CS=34.4
+'	Dim x(8) As Double = Array As Double(475, 0, 59, 142, 1.9, 1098, 641, 28)', CS=57.23)
+'	Dim x(8) As Double = Array As Double(702, 0, 0, 135, 35.1, 949, 641, 90)', CS=114.5
+'	Dim m As Map
+'	m.Initialize
+'	Dim SHAP1() As Double
+'	Dim t1 As Double = DateTime.Now
+'	m = SHAP.ExplainPrediction(x)
+'	Log(DateTime.Now - t1)
+'	Dim SHAP1() As Double=m.Get("shap_values")
+'	For i = 0 To 7
+'		Log("Feature " & i & _
+'	        " SHAP = " & SHAP1(i))
+'	Next
+'	Log("Base Value = " & m.Get("base_value"))
+'	Log("Prediction = " & m.Get("prediction"))
+'	Log("Sum SHAP = " & m.Get("sum_prediction"))
+'	Log(ANN.n)
+'	Log("Button4 " & DateTime.Now)
+End Sub
+
+
+Sub Button1_Click
+	Dim x(8) As Double
+	x(0) = Label3.text
+	x(1) = Label6.text
+	x(2) = Label9.text
+	x(3) = Label12.text
+	x(4) = Label15.text
+	x(5) = Label18.text
+	x(6) = Label21.text
+	x(7) = Label24.text
+'	Dim x(8) As Double = Array As Double(374, 189.2, 0, 170.1, 10.1, 926.1, 756.7, 3)', CS=34.4
+'	Dim x(8) As Double = Array As Double(475, 0, 59, 142, 1.9, 1098, 641, 28)', CS=57.23)
+'	Dim x(8) As Double = Array As Double(702, 0, 0, 135, 35.1, 949, 641, 90)', CS=114.5
+		
+	Dim m As Map
+	m.Initialize
+	Dim SHAP1() As Double
+	Dim t1 As Double = DateTime.Now
+	m = SHAP.ExplainPrediction(x)
+	Log(DateTime.Now - t1)
+	Dim SHAP1() As Double=m.Get("shap_values")
+	For i = 0 To 7
+		Log("Feature " & i & _
+	        " SHAP = " & SHAP1(i))
+	Next
+	Log("Base Value = " & m.Get("base_value"))
+	Log("Prediction = " & m.Get("prediction"))
+	Log("Sum SHAP = " & m.Get("sum_prediction"))
+	Log(ANN.n)
+	Log("Button4 " & DateTime.Now)
+	base = m.Get("base_value")
+	StartActivity(Plot)
+End Sub
+
+
+
+Private Sub SeekBar8_ValueChanged (Value As Int, UserChanged As Boolean)
+	If UserChanged Then
+		Label24.Text=Round2(1 + Value*(365-1)/100, 1)
+	End If
+End Sub
+
+Private Sub SeekBar7_ValueChanged (Value As Int, UserChanged As Boolean)
+	If UserChanged Then
+		Label21.Text=Round2(280 + Value*(992.6-280)/100, 1)
+	End If
+End Sub
+
+Private Sub SeekBar6_ValueChanged (Value As Int, UserChanged As Boolean)
+	If UserChanged Then
+		Label18.Text=Round2(723 + Value*(1218-723)/100, 1)
+	End If
+End Sub
+
+Private Sub SeekBar5_ValueChanged (Value As Int, UserChanged As Boolean)
+	If UserChanged Then
+		Label15.Text=Round2(0 + Value*(35.1-0)/100, 1)
+	End If
+End Sub
+
+Private Sub SeekBar4_ValueChanged (Value As Int, UserChanged As Boolean)
+	If UserChanged Then
+		Label12.Text=Round2(105 + Value*(295-105)/100, 1)
+	End If
+End Sub
+
+Private Sub SeekBar3_ValueChanged (Value As Int, UserChanged As Boolean)
+	If UserChanged Then
+		Label9.Text=Round2(0 + Value*(544-0)/100, 1)
+	End If
+End Sub
+
+Private Sub SeekBar2_ValueChanged (Value As Int, UserChanged As Boolean)
+	If UserChanged Then
+		Label6.Text=Round2(0 + Value*(440-0)/100, 1)
+	End If
+End Sub
+
+Private Sub SeekBar1_ValueChanged (Value As Int, UserChanged As Boolean)
+	If UserChanged Then
+		Label3.Text=Round2(70 + Value*(702-70)/100, 1)
+	End If
+End Sub
+
+Private Sub RadioButton5_CheckedChange(Checked As Boolean)
+	SHAP.LoadData(File.DirAssets, "data.csv")
+	
+End Sub
+
+Private Sub RadioButton4_CheckedChange(Checked As Boolean)
+	SHAP.LoadData(File.DirAssets, "background_250.csv")
+	
+End Sub
+
+Private Sub RadioButton3_CheckedChange(Checked As Boolean)
+	SHAP.LoadData(File.DirAssets, "background_100.csv")
+	
+End Sub
+
+Private Sub RadioButton2_CheckedChange(Checked As Boolean)
+	SHAP.LoadData(File.DirAssets, "background_50.csv")
+	
+End Sub
+
+Private Sub RadioButton1_CheckedChange(Checked As Boolean)
+	SHAP.LoadData(File.DirAssets, "background_25.csv")
+	
+End Sub
